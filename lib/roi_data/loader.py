@@ -6,7 +6,7 @@ import torch
 import torch.utils.data as data
 import torch.utils.data.sampler as torch_sampler
 from torch.utils.data.dataloader import default_collate
-from torch._six import int_classes as _int_classes
+# from torch._six import int_classes as _int_classes
 
 from core.config import cfg
 from roi_data.minibatch import get_minibatch
@@ -106,7 +106,7 @@ class BatchSampler(torch_sampler.BatchSampler):
             raise ValueError("sampler should be an instance of "
                              "torch.utils.data.Sampler, but got sampler={}"
                              .format(sampler))
-        if not isinstance(batch_size, _int_classes) or isinstance(batch_size, bool) or \
+        if not isinstance(batch_size, int) or isinstance(batch_size, bool) or \
                 batch_size <= 0:
             raise ValueError("batch_size should be a positive integeral value, "
                              "but got batch_size={}".format(batch_size))
