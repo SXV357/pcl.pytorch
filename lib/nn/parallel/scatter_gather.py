@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from torch.autograd import Variable
 from ._functions import Scatter, Gather
-from torch._six import string_classes, int_classes
+# from torch._six import string_classes, int_classes
 
 numpy_type_map = {
     'float64': torch.DoubleTensor,
@@ -91,11 +91,11 @@ def gather(outputs, target_device, dim=0):
             if elem.shape == ():  # scalars
                 py_type = float if elem.dtype.name.startswith('float') else int
                 return Variable(numpy_type_map[elem.dtype.name](list(map(py_type, outputs))))
-        elif isinstance(out, int_classes):
+        elif isinstance(out, int):
             return Variable(torch.LongTensor(outputs))
         elif isinstance(out, float):
             return Variable(torch.DoubleTensor(outputs))
-        elif isinstance(out, string_classes):
+        elif isinstance(out, str):
             return outputs
 
         raise TypeError((error_msg.format(elem_type)))

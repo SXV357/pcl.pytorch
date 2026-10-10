@@ -48,9 +48,10 @@ from __future__ import unicode_literals
 import warnings
 import numpy as np
 
+import torch
 from core.config import cfg
-from ops import nms as mmcv_nms
-from ops import soft_nms as mmcv_soft_nms
+from ops import nms as vision_nms
+from ops import soft_nms as vision_soft_nms
 import utils.cython_bbox as cython_bbox
 
 bbox_overlaps = cython_bbox.bbox_overlaps	
@@ -322,11 +323,21 @@ def nms(dets, thresh):
     """Apply classic DPM-style greedy NMS."""
     if dets.shape[0] == 0:
         return dets, []
-    dets, keep = mmcv_nms(
-        np.ascontiguousarray(dets[:, :4], dtype=np.float32),
-        np.ascontiguousarray(dets[:, -1], dtype=np.float32),
+
+    boxes = np.ascontiguousarray(dets[:, :4], dtype=np.float32)
+    scores = np.ascontiguousarray(dets[:, -1], dtype=np.float32)
+
+    keep = vision_nms(
+        torch.from_numpy(boxes),
+        torch.from_numpy(scores),
         thresh)
-    return dets, keep
+
+    keep = keep.numpy()
+
+    selected_boxes = boxes[keep]
+    selected_scores = scores[keep]
+
+    return np.hstack((selected_boxes, selected_scores[:, np.newaxis])).astype(np.float32, copy=False), keep
 
 
 def soft_nms(
@@ -336,7 +347,7 @@ def soft_nms(
     if dets.shape[0] == 0:
         return dets, []
 
-    dets, keep = mmcv_soft_nms(
+    dets, keep = vision_soft_nms(
         np.ascontiguousarray(dets[:, :4], dtype=np.float32),
         np.ascontiguousarray(dets[:, -1], dtype=np.float32),
         np.float32(overlap_thresh),

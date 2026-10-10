@@ -412,8 +412,8 @@ def _project_im_rois(im_rois, scales):
         rois (ndarray): R x 4 matrix of projected RoI coordinates
         levels (ndarray): image pyramid levels used by each projected RoI
     """
-    rois = im_rois.astype(np.float, copy=False) * scales
-    levels = np.zeros((im_rois.shape[0], 1), dtype=np.int)
+    rois = im_rois.astype(np.float64, copy=False) * scales
+    levels = np.zeros((im_rois.shape[0], 1), dtype=np.int64)
     return rois, levels
 
 
