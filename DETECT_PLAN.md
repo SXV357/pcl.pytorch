@@ -29,7 +29,7 @@ The repo plumbing is already done: the port is merged to `master` (PR #1) and `t
 
 ---
 
-## Phase 1: `detect()` v1 ✅ done Sat 10/17 (except CUDA run)
+## Phase 1: `detect()` v1 ✅ done Sat 10/17
 
 Mostly moving `infer_one.py` code into a class.
 
@@ -65,7 +65,7 @@ Put the wrapper **in this fork** (e.g. `tools/` or a new top-level file), so the
 
 ### Check 2: device
 - [x] No CUDA on the Mac → test `device="cpu"` locally. (~1 s/image)
-- [ ] **Pending, do with handoff:** test `device="cuda"` once on Colab (or ask Kanad to run Check 1). The number of detections should match; scores can differ by about 1e-5.
+- [x] ✅ Colab T4: CPU-input and GPU-input runs both pass. Originally: test `device="cuda"` once on Colab (or ask Kanad to run Check 1). The number of detections should match; scores can differ by about 1e-5.
 
 ---
 
@@ -73,6 +73,13 @@ Put the wrapper **in this fork** (e.g. `tools/` or a new top-level file), so the
 
 - [ ] Push the branch to the fork, open a PR, merge to `master`.
 - [ ] In the main project repo: `git submodule add <fork url> <path, e.g. third_party/oicr>`, and commit the `.gitmodules` + pointer.
+- Tested environments (for README):
+  | | Python | numpy | torch | torchvision | opencv |
+  |---|---|---|---|---|---|
+  | Mac M2, CPU (`pcl` conda env) | 3.11.17 | 1.26.4 | 2.14.1 | 0.29.1 | 4.11.0 |
+  | Colab T4, CUDA | Colab default | 2.1.3 | 2.11.0+cu130 | 0.26.0+cu130 | 4.14.0 |
+
+  Colab needed only `pip install pycocotools` + the `cython_bbox` build; no numpy downgrade.
 - [ ] README section (short):
   - clone with `--recurse-submodules` (or `git submodule update --init`)
   - env setup: Python 3.11, `torch torchvision opencv-python "numpy<2" scikit-learn pyyaml cython six pycocotools`, and build `cython_bbox` (`cd lib && python setup.py build_ext --inplace`)

@@ -106,26 +106,22 @@ class DetectPipeline():
     def detect(self, image: torch.Tensor, image_id: int) -> dict[str, np.ndarray]:
         '''
         Args:
-            `image`: float tensor (3, H, W), RGB, 0-1, no normalization, original
+            - `image`: float tensor (3, H, W), RGB, 0-1, no normalization, original
             VOC size, any device. This image will have some noise added to it though
             but this function doesn't modify the noise part at all.
 
-            `image_id`: int VOC 2007 ID (test or trainval)
+            - `image_id`: int VOC 2007 ID (test or trainval)
         
         Returns:
-            `boxes`: float32 `(N, 4), x1 y1 x2 y2` top left/bottom right
-
-            `scores`: float32 `(N,)` confidence
-
-            `labels`: int64 `(N,)`, 0-19, name = `VOC_CLASSES[label]`
-
-            The above 3 are returned as a dictionary where boxes/scores/labels are keys and all detections are included.
-            There could be cases sometimes when detection count is 0
+            - `boxes`: float32 `(N, 4), x1 y1 x2 y2` top left/bottom right
+            - `scores`: float32 `(N,)` confidence
+            - `labels`: int64 `(N,)`, 0-19, name = `VOC_CLASSES[label]`
+            
+            - The above 3 are returned as a dictionary where boxes/scores/labels are keys and all detections are included. There could be cases sometimes when detection count is 0
         
         Raises:
-            `ValueError` for a bad image shape
-
-            `KeyError` if the image id passed in is non-existent
+            - `ValueError` for a bad image shape
+            - `KeyError` if the image id passed in is non-existent
         '''
 
         if image.ndim != 3 or image.shape[0] != 3:
