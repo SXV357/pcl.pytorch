@@ -1,4 +1,4 @@
-# OICR `detect()` Plan: Fri 10/16 → Sun 10/18
+# OICR `detect()` Plan: Sat 10/17 → Sun 10/18
 
 Goal: get Kanad and Utkarsh a working `detect()` they can call from the RL code, plugged into the main project repo. Then check that it's correct (subset mAP) and start the eval script.
 
@@ -19,55 +19,57 @@ The repo plumbing is already done: the port is merged to `master` (PR #1) and `t
 
 ---
 
-## Phase 0: Prep (Fri, ~30 min)
+## Phase 0: Prep ✅ done Sat 10/17
 
-- [ ] Download `voc_2007_trainval.pkl` from the same Drive proposals folder into `data/selective_search_data/`.
-- [ ] Download and untar `VOCtrainval_06-Nov-2007.tar` (same server/mirror as the test tar). It merges into the same `data/VOCdevkit/VOC2007/`.
-- [ ] Sanity check: trainval pkl has 5,011 `indexes`, and no ID appears in both pickles.
-- [ ] Create a branch, e.g. `git checkout -b detect-wrapper`.
+- [x] Download `voc_2007_trainval.pkl` from the same Drive proposals folder into `data/selective_search_data/`.
+- [x] Download and untar `VOCtrainval_06-Nov-2007.tar` (same server/mirror as the test tar). It merges into the same `data/VOCdevkit/VOC2007/`.
+- [x] Sanity check: trainval pkl has 5,011 `indexes`, and no ID appears in both pickles.
+  - Verified: 9,963 JPEGs + 9,963 XMLs; `trainval.txt` (5,011) and `test.txt` (4,952) IDs exactly match each pickle's `indexes`.
+- [x] Create a branch (`pipeline`).
 
 ---
 
-## Phase 1: `detect()` v1 (Fri, 1 evening)
+## Phase 1: `detect()` v1 ✅ done Sat 10/17 (except CUDA run)
 
 Mostly moving `infer_one.py` code into a class.
 
-### Where it lives
+### Where it lives ✅ `tools/detect_pipeline.py`
 Put the wrapper **in this fork** (e.g. `tools/` or a new top-level file), so the main repo imports **one** entry point. Only the wrapper file should add `lib/` to `sys.path`. The repo's generic package names (`utils`, `core`, `datasets`, `nn`, `ops`, `modeling`) collide with other code if they leak out.
 
-### `__init__` (runs once)
-- [ ] Inputs: yaml path, checkpoint path, proposal pkl path(s), device.
-- [ ] Merge yaml → 3 overrides (`NUM_CLASSES=20`, `LOAD_IMAGENET_PRETRAINED_WEIGHTS=False`, `BBOX_AUG.ENABLED=False`) → `assert_and_infer_cfg()`.
-- [ ] Build `Generalized_RCNN`, load the checkpoint, `.eval()`, move to `device`.
-- [ ] Load **both** pickles once. Build a lookup from image ID to boxes, so each call doesn't run `list.index()` over ~5k entries.
-- [ ] Keep the class-name list here.
+### `__init__` (runs once) ✅ done Sat 10/17
+- [x] Inputs: `device` only. Paths are module-level constants built from `ROOT = Path(__file__).resolve().parent.parent`; `lib/` is added to `sys.path` at module level, replacing `_init_paths`.
+- [x] Merge yaml → 3 overrides (`NUM_CLASSES=20`, `LOAD_IMAGENET_PRETRAINED_WEIGHTS=False`, `BBOX_AUG.ENABLED=False`) → `assert_and_infer_cfg()`.
+- [x] Build `Generalized_RCNN`, load the checkpoint, `.eval()`, move to `device`.
+- [x] Load **both** pickles once. Build a lookup from image ID to boxes, so each call doesn't run `list.index()` over ~5k entries.
+- [x] Class-name list as module constant `VOC_CLASSES`.
+- [ ] Class docstring: add "one instance per process (global cfg is locked)" + single-scale note. *(device type hint done)*
 
-### `detect(image, image_id)` (runs every call)
-1. [ ] **Validate**: shape is `(3, H, W)` and `image_id` exists, with clear error messages.
-2. [ ] **Convert the format**: tensor → CPU → numpy, `(3,H,W)` → `(H,W,3)`, RGB → BGR, ×255.
+### `detect(image, image_id)` (runs every call) ✅
+1. [x] **Validate**: shape is `(3, H, W)` and `image_id` exists, with clear error messages.
+2. [x] **Convert the format**: tensor → CPU → numpy, `(3,H,W)` → `(H,W,3)`, RGB → BGR, ×255.
    - Keep it **float**. Do **not** cast to uint8; rounding erases noise smaller than 1/255.
    - Do **not** apply mean/std. The repo subtracts its own BGR `PIXEL_MEANS` (`config.py:434`) inside `prep_im_for_blob` (`blob.py:92`), which assumes BGR 0–255.
-3. [ ] **Proposals**: look up by ID, cast to float32, clip / unique / filter small (min size 2). Same as `infer_one.py`.
-4. [ ] **Forward**: `im_detect_all` with your `unwrap`. Change: `unwrap` must move the three tensors to `device` before calling the model (`test.py:102-104` creates them on CPU).
-5. [ ] **NMS**: `box_results_with_nms_and_limit` → `cls_boxes`.
-6. [ ] **Flatten**: loop classes 1–20 and stack into `boxes`, `labels`, `scores`.
+3. [x] **Proposals**: look up by ID, cast to float32, clip / unique / filter small (min size 2). Same as `infer_one.py`.
+4. [x] **Forward**: `im_detect_all` with your `unwrap`. Change: `unwrap` must move the three tensors to `device` before calling the model (`test.py:102-104` creates them on CPU).
+5. [x] **NMS**: `box_results_with_nms_and_limit` → `cls_boxes`.
+6. [x] **Flatten** → returns dict: `boxes` float32 (N,4), `scores` float32 (N,), `labels` int64 (N,) 0–19: loop classes 1–20 and stack into `boxes`, `labels`, `scores`.
    - Zero detections → `boxes` shape `(0,4)`, the others `(0,)`. Never `[]` or `None`.
    - Labels: pick int (0–19 or 1–20) or name and document it.
-7. [ ] Wrap the call in `torch.no_grad()` (black-box RL, no gradients needed).
+7. [x] ~~`torch.no_grad()`~~ not needed: in this repo `.eval()` already turns off gradient tracking in `forward`.
 
-### Check 1: does it match the script?
-- [ ] Load `000001.jpg` with cv2 → convert to RGB, 0–1, `(3,H,W)` tensor (i.e., simulate Utkarsh's input) → `detect(img, 1)`.
-- [ ] Top person ≈ **0.99**, top dog ≈ **0.84**, same boxes as `infer_one.py`. If the numbers differ, the format conversion is wrong (most likely a BGR/RGB or scale mistake).
-- [ ] Try a trainval ID too (proves the second pickle lookup works).
+### Check 1: does it match the script? ✅ (your `__main__` checks person on image 1; dog 0.843 + trainval image 5 verified in a throwaway run)
+- [x] Load `000001.jpg` with cv2 → convert to RGB, 0–1, `(3,H,W)` tensor (i.e., simulate Utkarsh's input) → `detect(img, 1)`.
+- [x] Top person ≈ **0.99**, top dog ≈ **0.84**, same boxes as `infer_one.py`. If the numbers differ, the format conversion is wrong (most likely a BGR/RGB or scale mistake).
+- [x] Try a trainval ID too (image 5 → chair 0.968) (proves the second pickle lookup works).
 - [ ] Bad `image_id` → your error message, not a raw traceback.
 
 ### Check 2: device
-- [ ] No CUDA on the Mac → test `device="cpu"` locally.
-- [ ] Test `device="cuda"` once on Colab (or ask Kanad to run Check 1). The number of detections should match; scores can differ by about 1e-5.
+- [x] No CUDA on the Mac → test `device="cpu"` locally. (~1 s/image)
+- [ ] **Pending, do with handoff:** test `device="cuda"` once on Colab (or ask Kanad to run Check 1). The number of detections should match; scores can differ by about 1e-5.
 
 ---
 
-## Phase 2: Into the main project repo (Sat morning)
+## Phase 2: Into the main project repo (Sun 10/18, first)
 
 - [ ] Push the branch to the fork, open a PR, merge to `master`.
 - [ ] In the main project repo: `git submodule add <fork url> <path, e.g. third_party/oicr>`, and commit the `.gitmodules` + pointer.
@@ -81,7 +83,7 @@ Put the wrapper **in this fork** (e.g. `tools/` or a new top-level file), so the
 
 ---
 
-## Phase 3: Subset mAP (Sat–Sun)
+## Phase 3: Subset mAP baseline (Sun 10/18, after Phase 2)
 
 Checks that what you handed off is correct. Builds most of the eval script.
 
@@ -95,7 +97,7 @@ Checks that what you handed off is correct. Builds most of the eval script.
 
 ---
 
-## Phase 4: Eval script + reward list (Sun / next week)
+## Phase 4: Eval script + reward list (week of 10/19)
 
 - [ ] Eval script = Phase 3 run twice: clean images and perturbed images (same IDs, same proposals). Report the mAP drop and the noise size (L2, L∞ in 0–1 pixel units).
 - [ ] Reward list (write it yourself; run it past me to check reasoning). Questions to answer per candidate:
