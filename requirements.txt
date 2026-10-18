@@ -1,0 +1,9 @@
+torch
+torchvision
+numpy
+opencv-python
+pyyaml
+scikit-learn
+pycocotools
+six
+cython
