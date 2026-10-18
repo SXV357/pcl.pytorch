@@ -3,4 +3,5 @@ Outputs/
 .DS_Store
 __pycache__/
 *.so
-lib/build/lib/utils/cython_bbox.c
+lib/build/
+lib/utils/cython_bbox.c
