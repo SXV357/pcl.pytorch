@@ -69,11 +69,14 @@ Put the wrapper **in this fork** (e.g. `tools/` or a new top-level file), so the
 
 ---
 
-## Phase 2: Into the main project repo (Sun 10/18, first)
+## Phase 2: Into the main project repo ✅ done Sun 10/18 (except handoff message)
 
 - [x] Push the branch to the fork, open a PR, merge to `master`. (fork `master` contains `e12bf61`, verified Sun 10/18)
-- Main project repo = `SXV357/CS557-WSOD-Neural-Perturbation` (local: `~/Desktop/CS 557/WSOD`, branch `main`, only README + .gitignore so far).
-- [ ] In the main project repo: `git submodule add <fork url> <path, e.g. third_party/oicr>`, and commit the `.gitmodules` + pointer.
+- Main project repo = `SXV357/CS557-WSOD-Neural-Perturbation` (private; local: `~/Desktop/CS 557/WSOD`, branch `main`). Kanad + Utkarsh added as collaborators.
+- [x] Submodule at `WSOD/third_party/oicr`, `branch = master`, merged to WSOD `main` (PR #1). Checks A (self-check from WSOD root) + B (import from WSOD root) pass.
+- [x] Fork cleanup: `*.so`, `lib/build/`, `lib/utils/cython_bbox.c` gitignored + untracked; `requirements.txt` added (pinned `dba9d3a` in WSOD).
+- [x] README: `OICR.md` in WSOD (PR #2 + `c302c97` Colab/private-repo clone note).
+- [x] Check C: fresh Colab T4 clone following only the README → "Both runs successful".
 - Tested environments (for README):
   | | Python | numpy | torch | torchvision | opencv |
   |---|---|---|---|---|---|
@@ -81,12 +84,7 @@ Put the wrapper **in this fork** (e.g. `tools/` or a new top-level file), so the
   | Colab T4, CUDA | Colab default | 2.1.3 | 2.11.0+cu130 | 0.26.0+cu130 | 4.14.0 |
 
   Colab needed only `pip install pycocotools` + the `cython_bbox` build; no numpy downgrade.
-- [ ] README section (short):
-  - clone with `--recurse-submodules` (or `git submodule update --init`)
-  - env setup: Python 3.11, `torch torchvision opencv-python "numpy<2" scikit-learn pyyaml cython six pycocotools`, and build `cython_bbox` (`cd lib && python setup.py build_ext --inplace`)
-  - downloads: checkpoint → `Outputs/`, both pkls, VOC07 test + trainval tars
-  - a 5-line usage example of `detect()` and the output format
-- [ ] Remember: updating the fork means you **also** commit the new submodule pointer in the main repo.
+- Remember: updating the fork means you **also** bump + commit the submodule pointer in WSOD (`git submodule update --remote third_party/oicr` → `git add third_party/oicr` → commit → push).
 - [ ] Send the handoff message with the assumptions table and "tell me what to change."
 
 ---
@@ -125,6 +123,7 @@ Checks that what you handed off is correct. Builds most of the eval script.
 - **Course policy**: you write all the code; AI explains, points and reviews reasoning. Disclose AI-assisted setup and explanations.
 
 ## Done = 
-- [ ] `detect()` matches `infer_one.py` on image 1 (CPU) and runs on CUDA
-- [ ] Submodule in the main repo, README updated, handoff message sent
+- [x] `detect()` matches `infer_one.py` on image 1 (CPU) and runs on CUDA
+- [x] Submodule in the main repo, README updated
+- [ ] Handoff message sent
 - [ ] Subset mAP number in hand (or a known bug being chased)
