@@ -71,7 +71,8 @@ Put the wrapper **in this fork** (e.g. `tools/` or a new top-level file), so the
 
 ## Phase 2: Into the main project repo (Sun 10/18, first)
 
-- [ ] Push the branch to the fork, open a PR, merge to `master`.
+- [x] Push the branch to the fork, open a PR, merge to `master`. (fork `master` contains `e12bf61`, verified Sun 10/18)
+- Main project repo = `SXV357/CS557-WSOD-Neural-Perturbation` (local: `~/Desktop/CS 557/WSOD`, branch `main`, only README + .gitignore so far).
 - [ ] In the main project repo: `git submodule add <fork url> <path, e.g. third_party/oicr>`, and commit the `.gitmodules` + pointer.
 - Tested environments (for README):
   | | Python | numpy | torch | torchvision | opencv |
