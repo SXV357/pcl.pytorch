@@ -2,3 +2,5 @@ data/*
 Outputs/
 .DS_Store
 __pycache__/
+*.so
+lib/build/
