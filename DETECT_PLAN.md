@@ -69,7 +69,7 @@ Put the wrapper **in this fork** (e.g. `tools/` or a new top-level file), so the
 
 ---
 
-## Phase 2: Into the main project repo ✅ done Sun 10/18 (except handoff message)
+## Phase 2: Into the main project repo ✅ done Sun 10/18
 
 - [x] Push the branch to the fork, open a PR, merge to `master`. (fork `master` contains `e12bf61`, verified Sun 10/18)
 - Main project repo = `SXV357/CS557-WSOD-Neural-Perturbation` (private; local: `~/Desktop/CS 557/WSOD`, branch `main`). Kanad + Utkarsh added as collaborators.
@@ -85,27 +85,34 @@ Put the wrapper **in this fork** (e.g. `tools/` or a new top-level file), so the
 
   Colab needed only `pip install pycocotools` + the `cython_bbox` build; no numpy downgrade.
 - Remember: updating the fork means you **also** bump + commit the submodule pointer in WSOD (`git submodule update --remote third_party/oicr` → `git add third_party/oicr` → commit → push).
-- [ ] Send the handoff message with the assumptions table and "tell me what to change."
+- [x] Send the handoff message with the assumptions table and "tell me what to change." (sent with the 47.5 clean baseline)
 
 ---
 
-## Phase 3: Subset mAP baseline (Sun 10/18, after Phase 2)
+## Phase 3: Subset mAP baseline ✅ done Mon 10/19
 
 Checks that what you handed off is correct. Builds most of the eval script.
 
-- [ ] Pick a fixed list of ~100 test IDs (save it to a file so it's reproducible).
-- [ ] Loop `detect()` over them.
-- [ ] Write one results file per class in the format `voc_eval` expects. See `_write_voc_results_files` (`voc_dataset_evaluator.py:63`) for the line format (`image_id score x1 y1 x2 y2`) and the **+1** on coordinates (VOC is 1-based).
-- [ ] Write an imageset file listing your ~100 IDs (six-digit, one per line).
-- [ ] Call `voc_eval(detpath, annopath, imagesetfile, classname, cachedir, ovthresh=0.5, use_07_metric=True)` (`voc_eval.py:86`) for each class, then average the 20 APs.
-- [ ] Expect **~45–55**. ~10–20 means a bug: check the conversion, then the +1, then the class order.
-- [ ] Later (Colab/Kanad GPU): full 4,952 test images → the real clean baseline.
+Script: `tools/eval_subset.py` (`--full` for all test images, `--device cpu|cuda`). Merged to fork `master`, WSOD submodule bumped.
+
+- [x] Pick a fixed list of ~100 test IDs (save it to a file so it's reproducible). → `ImageSets/Main/test100.txt`, seed 42.
+- [x] Loop `detect()` over them.
+- [x] Write one results file per class in the format `voc_eval` expects. See `_write_voc_results_files` (`voc_dataset_evaluator.py:63`) for the line format (`image_id score x1 y1 x2 y2`) and the **+1** on coordinates (VOC is 1-based).
+- [x] Write an imageset file listing your ~100 IDs (six-digit, one per line).
+- [x] Call `voc_eval(detpath, annopath, imagesetfile, classname, cachedir, ovthresh=0.5, use_07_metric=True)` (`voc_eval.py:86`) for each class, then average the 20 APs.
+- [x] Expect **~45–55**. ~10–20 means a bug: check the conversion, then the +1, then the class order. → **49.7** on subset-100 (Mac CPU, ~2 min).
+- [x] Full 4,952 test images → the real clean baseline: **47.5% mAP** (single-scale, no flip; Colab T4, ~1.5 h). Published 52.9 uses test-time aug (4 scales + flip); gap expected from disabling it. Subset vs full gap (49.7 vs 47.5) = small-sample noise.
+  - Per-class APs saved. Weak classes as expected for OICR: person 9.9, bottle 13.4, chair 21.3, pottedplant 22.6.
+  - Colab T4 was barely faster than Mac CPU (~1 s/img). Likely CPU-bound pre/post-processing on Colab's 2 vCPUs, or the cuDNN slowdown (README:186). Time the subset with/without `cudnn.enabled = False` before Phase 4's double run.
 
 ---
 
 ## Phase 4: Eval script + reward list (week of 10/19)
 
-- [ ] Eval script = Phase 3 run twice: clean images and perturbed images (same IDs, same proposals). Report the mAP drop and the noise size (L2, L∞ in 0–1 pixel units).
+- [ ] Eval script = Phase 3 run twice: clean images and perturbed images (same IDs, same proposals, **same test setting**: single-scale, no flip). Report the mAP drop vs the 47.5 clean baseline and the noise size (L2, L∞ in 0–1 pixel units).
+  - Add a progress print (count + elapsed) so long runs show speed early.
+  - Optional extension: run only the final perturbed test images once with test-time aug on → does the attack survive TTA (a known partial defense)?
+  - Note: person AP is ~10 even when clean, so there's little room for an attack to lower it.
 - [ ] Reward list (write it yourself; run it past me to check reasoning). Questions to answer per candidate:
   - What does "the attack worked" mean: label gone, score down, or box moved (H3)?
   - How do you penalize noise size?
@@ -119,11 +126,12 @@ Checks that what you handed off is correct. Builds most of the eval script.
 - **cv2 `rectangle`** takes two corner tuples, `(x1,y1)` and `(x2,y2)`. One 4-tuple is read as `(x, y, w, h)`.
 - **Proposal position ≠ image ID**: always look up by ID.
 - **Global `cfg`**: one detector config per Python process. A second WSOD model (PCL/MIST) means a separate process.
-- **Single-scale vs 52.9**: always say which setting a number comes from.
+- **Single-scale vs 52.9**: always say which setting a number comes from. Our setting: single-scale, no flip → 47.5 full test.
+- **Subset numbers are noisy**: classes with 2–9 GT boxes swing AP by 10–50 pts. Only the full-test number is the baseline.
 - **Course policy**: you write all the code; AI explains, points and reviews reasoning. Disclose AI-assisted setup and explanations.
 
 ## Done = 
 - [x] `detect()` matches `infer_one.py` on image 1 (CPU) and runs on CUDA
 - [x] Submodule in the main repo, README updated
-- [ ] Handoff message sent
-- [ ] Subset mAP number in hand (or a known bug being chased)
+- [x] Handoff message sent
+- [x] Subset mAP number in hand (49.7 subset-100; 47.5 full test = clean baseline)
