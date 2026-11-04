@@ -2,6 +2,7 @@ import random
 import argparse
 import cv2
 import torch
+import time
 
 from detect_pipeline import ROOT, VOC_CLASSES, DetectPipeline
 from datasets.voc_eval import voc_eval
@@ -36,6 +37,7 @@ cl_mappings = {}
 for cl in VOC_CLASSES:
     cl_mappings[cl] = []
 
+total_time = 0.0
 for iid in test_ids:
     path = ROOT / f"data/VOCdevkit/VOC2007/JPEGImages/{iid}.jpg"
 
@@ -53,7 +55,11 @@ for iid in test_ids:
     # 0-255 -> 0-1
     t = permuted_tensor.float() / 255
 
+    start = time.perf_counter()
     results = pipeline.detect(t, int(iid))
+    elapsed = time.perf_counter() - start
+
+    total_time += elapsed
 
     for box, score, label in zip(results["boxes"], results["scores"], results["labels"]):
         x1, y1, x2, y2 = box
@@ -83,3 +89,4 @@ for k in cl_mappings:
     total_ap += ap
 
 print(f"mAP: {total_ap / len(VOC_CLASSES)}")
+print(f"Total evaluation time (only for detect across 100 images): {total_time / 100:.2f} seconds")
