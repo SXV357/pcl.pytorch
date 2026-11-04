@@ -89,4 +89,6 @@ for k in cl_mappings:
     total_ap += ap
 
 print(f"mAP: {total_ap / len(VOC_CLASSES)}")
-print(f"Total evaluation time (only for detect across 100 images): {total_time / 100:.2f} seconds")
+
+num_images = len(test_ids)
+print(f"Average time per detect() call for {num_images} images: {total_time / num_images:.2f} seconds")
