@@ -107,17 +107,17 @@ Script: `tools/eval_subset.py` (`--full` for all test images, `--device cpu|cuda
 
 ---
 
-## Phase 4: Eval script + reward list (week of 10/19)
+## Phase 4: Midterm wrap-up ✅ done (report submitted 10/30)
 
-- [ ] Eval script = Phase 3 run twice: clean images and perturbed images (same IDs, same proposals, **same test setting**: single-scale, no flip). Report the mAP drop vs the 47.5 clean baseline and the noise size (L2, L∞ in 0–1 pixel units).
-  - Add a progress print (count + elapsed) so long runs show speed early.
-  - Optional extension: run only the final perturbed test images once with test-time aug on → does the attack survive TTA (a known partial defense)?
-  - Note: person AP is ~10 even when clean, so there's little room for an attack to lower it.
-- [ ] Reward list (write it yourself; run it past me to check reasoning). Questions to answer per candidate:
-  - What does "the attack worked" mean: label gone, score down, or box moved (H3)?
-  - How do you penalize noise size?
-  - Does it give a signal per image/step (mAP doesn't)?
-  - How could the agent cheat it?
+- Eval script + reward list dropped from my side: Kanad handled the attack evaluation and did the end-to-end runs, and those findings are in the submitted report.
+- My report contributions: clean per-class APs + 47.5 mAP, my pipeline section, and the pipeline figure.
+- [x] `detect()` timing: **0.84 s/call** average over `test100` on Mac CPU (`perf_counter` around the call in `eval_subset.py`, every call included). T4 not timed per call.
+
+---
+
+## Next: final project (November)
+
+OICR stays as a victim. Adding a pipeline for a more robust SOTA WSOD model (WeakSAM or HUWSOD, not decided) to compare against it: one without fixed proposals, so the attack can affect proposals too. Abstracted so any model can plug in. This plan covers the OICR work only.
 
 ---
 
