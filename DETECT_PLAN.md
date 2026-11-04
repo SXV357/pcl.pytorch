@@ -117,7 +117,7 @@ Script: `tools/eval_subset.py` (`--full` for all test images, `--device cpu|cuda
 
 ## Next: final project (November)
 
-Moving on from OICR as the victim: a pipeline for a SOTA WSOD model (WeakSAM or HUWSOD, not decided), abstracted so any model can plug in, including one where the attack affects proposals too. This plan covers the OICR work only.
+OICR stays as a victim. Adding a pipeline for a more robust SOTA WSOD model (WeakSAM or HUWSOD, not decided) to compare against it: one without fixed proposals, so the attack can affect proposals too. Abstracted so any model can plug in. This plan covers the OICR work only.
 
 ---
 
