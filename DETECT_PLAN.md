@@ -93,7 +93,7 @@ Put the wrapper **in this fork** (e.g. `tools/` or a new top-level file), so the
 
 Checks that what you handed off is correct. Builds most of the eval script.
 
-Script: `tools/eval_subset.py` (`--full` for all test images, `--device cpu|cuda`). Merged to fork `master`, WSOD submodule bumped.
+Script: `tools/eval_subset.py` (`--full` for all test images, `--device cpu|cuda`). Merged to fork `master`, WSOD submodule bumped. Later moved to the WSOD repo as `eval/eval_subset.py` (detector-agnostic) and removed from this fork.
 
 - [x] Pick a fixed list of ~100 test IDs (save it to a file so it's reproducible). → `ImageSets/Main/test100.txt`, seed 42.
 - [x] Loop `detect()` over them.
